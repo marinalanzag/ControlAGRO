@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ControlAGRO - O Fazendeiro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./styles/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./scripts/offline-db.js"></script>
+  <script src="./scripts/data-loader.js"></script>
+  <script src="./scripts/sync-engine.js"></script>
+  <script src="./scripts/bootstrap-state.js"></script>
+  <script src="./scripts/auth-session.js"></script>
+  <script src="./scripts/auth-engine.js"></script>
+  <script src="./scripts/runtime-config.js"></script>
+  <script src="./scripts/app-config.js"></script>
+</head>
+<body>
+<div class="login-scr" id="loginScr">
+        <div class="login-box">
+            <img src="logo.png" alt="O Fazendeiro" class="login-logo">
+            <div class="login-title">ControlAGRO</div>
+            <div class="login-sub">Selecione seu perfil para continuar</div>
+            <div id="loginActions" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px"></div>
+            <div class="login-list" id="loginList">
+                <div class="load">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="offline-badge" id="offBadge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="1" y1="1" x2="23" y2="23" />
+            <path d="M16.72 11.06A10.94 10.94 0 0119 12.55" />
+            <path d="M5 12.55a10.94 10.94 0 015.17-2.39" />
+            <path d="M10.71 5.05A16 16 0 0122.58 9" />
+            <path d="M1.42 9a15.91 15.91 0 014.7-2.88" />
+            <path d="M8.53 16.11a6 6 0 016.95 0" />
+            <line x1="12" y1="20" x2="12.01" y2="20" />
+        </svg>
+        MODO OFFLINE
+    </div>
+    <div class="app" id="appMain" style="display:none">
+        <header class="hdr">
+            <div class="sync-ind" id="syncInd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+                </svg></div>
+            <button class="pend-btn" id="pendBtn" onclick="openPendingModal()" title="Itens pendentes de sincronização"><span id="pendCount">0</span></button>
+            <div class="hdr-c">
+
+                <div class="logo-s">
+                    <img src="logo.png" alt="O Fazendeiro" class="logo-i">
+                    <div><span class="brand-n">ControlAGRO</span><br><span class="brand-s">O Fazendeiro</span></div>
+                </div>
+                <div class="u-menu">
+                    <div class="avatar" id="userAv">--</div><span id="masterBadge"></span>
+                    <button class="logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>Sair</button>
+                </div>
+            </div>
+        </header>
+        <nav class="nav">
+            <button class="nav-t act" data-tab="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                </svg>Dashboard</button>
+            <button class="nav-t" data-tab="visitas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </svg>Visitas</button>
+            <button class="nav-t" data-tab="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                </svg>Clientes</button>
+            <button class="nav-t" data-tab="equipe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <line x1="19" y1="8" x2="19" y2="14" />
+                    <line x1="22" y1="11" x2="16" y2="11" />
+                </svg>Equipe</button>
+            <button class="nav-t master-only" data-tab="relatorios" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M3 3v18h18" />
+                    <path d="M18 17V9" />
+                    <path d="M13 17V5" />
+                    <path d="M8 17v-3" />
+                </svg>Relatórios</button>
+        </nav>
+        <main class="main">
+            <section class="scr act" id="scr-dashboard">
+                <div class="date-d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg><span id="curDate"></span></div>
+
+                <!-- AGENDA PRINCIPAL -->
+                <div class="sec-h" style="margin-top:0.5rem">
+                    <h2 class="sec-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>Agenda Inteligente</h2>
+                </div>
+                <div id="agendaList" class="agenda-list">
+                    <div class="empty"><p>Carregando agenda...</p></div>
+                </div>
+
+                <!-- STATS RESUMIDOS -->
+                <div class="stats-mini">
+                    <div class="stat-mini"><span class="stat-mini-v" id="stVisitas">-</span> visitas</div>
+                    <div class="stat-mini"><span class="stat-mini-v" id="stClientes">-</span> clientes</div>
+                    <div class="stat-mini"><span class="stat-mini-v" id="stNegoc">-</span> negociação</div>
+                    <div class="stat-mini" style="display:none"><span class="stat-mini-v" id="stConv">-</span> conversão</div>
+                </div>
+                <div class="sec-h">
+                    <h2 class="sec-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>Últimas Visitas</h2><button class="see-all" onclick="showTab('visitas')">Ver todas <svg
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"
+                            height="14">
+                            <polyline points="9 18 15 12 9 6" />
+                        </svg></button>
+                </div>
+                <div id="recentVis">
+                    <div class="load">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </section>
+            <section class="scr" id="scr-visitas">
+                <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg><input type="text" placeholder="Buscar visitas..." id="srcVis"></div>
+                <div class="pills" id="pillsVis"><button class="pill act" data-f="todas">Todas</button><button
+                        class="pill" data-f="prospeccao">Prospecção</button><button class="pill"
+                        data-f="analise">Análise</button><button class="pill" data-f="suporte">Suporte</button><button
+                        class="pill" data-f="posvenda">Pós-venda</button>
+                </div>
+                <div style="text-align:right;padding:8px 0 12px 0"><button onclick="openManualVisita()" style="background:#f0f0f0;border:1px solid #ccc;color:#555;padding:10px 16px;border-radius:10px;font-size:0.85rem;cursor:pointer;font-family:inherit;font-weight:500">+ Visita Manual</button></div>
+                <div id="visList">
+                    <div class="load">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </section>
+            <section class="scr" id="scr-clientes">
+                <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg><input type="text" placeholder="Buscar clientes..." id="srcCli"></div>
+                <div class="pills" id="pillsCli"><button class="pill act" data-f="todos">Todos</button><button
+                        class="pill" data-f="indicacao">Indicação</button><button class="pill"
+                        data-f="visita">Visita</button><button class="pill" data-f="marketing">Marketing</button><button
+                        class="pill" data-f="evento">Evento</button>
+                </div>
+                <div style="text-align:right;padding:8px 0 12px 0"><button onclick="openManualCliente()" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:10px 16px;border-radius:10px;font-size:0.85rem;cursor:pointer;font-family:inherit;font-weight:500">+ Cliente Offline</button></div>
+                <div id="cliList">
+                    <div class="load">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </section>
+            <section class="scr" id="scr-equipe">
+                <div id="eqList">
+                    <div class="load">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </section>
+            <section class="scr" id="scr-relatorios" style="display:none">
+                <div class="scr-h">
+                    <h2>Relatório Gerencial de Vendedores</h2>
+                    <div class="rel-actions">
+                        <div class="rel-filters">
+                            <button class="filter-btn act" data-periodo="total">Total</button>
+                            <button class="filter-btn" data-periodo="mes">Mês</button>
+                            <button class="filter-btn" data-periodo="semana">Semana</button>
+                            <button class="filter-btn" data-periodo="hoje">Hoje</button>
+                        </div>
+                        <button class="btn-export" onclick="exportarCSV()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Exportar CSV
+                        </button>
+                    </div>
+                </div>
+                <div id="relList">
+                    <div class="load">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <button class="fab" id="fab" onclick="openModal('visita')"><svg viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+            </svg></button>
+    </div>
+
+    <div class="modal-o" id="modal-visita">
+        <div class="modal">
+            <div class="modal-h">
+                <h3 class="modal-t">Nova Visita Técnica</h3><button class="modal-x" onclick="closeModal('visita')"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-b">
+                <div class="geo-st" id="geoSt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                    </svg><span id="geoTxt">Obtendo localização...</span></div>
+                <div id="manualDateGrp" style="display:none;padding:10px 14px;background:var(--n1);border-radius:12px;margin-bottom:12px">
+                    <div style="font-size:.8rem;font-weight:600;color:var(--n6);margin-bottom:6px">VISITA MANUAL - Sem localização</div>
+                    <label class="f-lbl">Data e hora da visita *</label>
+                    <input type="datetime-local" class="f-inp" id="visManualDate">
+                </div>
+                <form id="frmVis">
+                    <div class="f-grp"><label class="f-lbl">Cliente *</label><select class="f-inp" id="visCliente"
+                            required>
+                            <option value="">Selecione</option>
+                        </select></div>
+                    <div class="f-grp"><label class="f-lbl">Motivo *</label><select class="f-inp" id="visMotivo"
+                            required>
+                            <option value="">Selecione</option>
+                            <option value="prospeccao">Prospecção</option>
+                            <option value="analise">Análise de plantio/solo</option>
+                            <option value="suporte">Suporte técnico</option>
+                            <option value="posvenda">Pós-venda</option>
+                        </select></div>
+                    <div class="f-grp"><label class="f-lbl">Descrição *</label><textarea class="f-inp" id="visDesc"
+                            placeholder="Detalhes da visita..." required></textarea></div>
+                    <div class="f-grp"><label class="f-lbl">Foto do Local</label>
+                        <div class="photo-up" id="photoUp" onclick="document.getElementById('photoIn').click()"><svg
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                                <circle cx="12" cy="13" r="4" />
+                            </svg>
+                            <div class="photo-txt">Toque para foto</div>
+                            <div class="photo-hint">JPG, PNG até 5MB</div>
+                        </div><input type="file" id="photoIn" accept="image/*" capture="environment"
+                            style="display:none">
+                    </div>
+                    <div class="f-row">
+                        <div class="f-grp"><label class="f-lbl">Status</label><select class="f-inp" id="visStat">
+                                <option value="sem-venda">Sem proposta</option>
+                                <option value="prospeccao">Prospecção</option>
+                                <option value="negociacao">Negociação</option>
+                                <option value="fechado">Fechado</option>
+                                <option value="perdido">Perdido</option>
+                            </select></div>
+                        <div class="f-grp"><label class="f-lbl">Valor Est.</label>
+                            <div class="input-prefix">
+                                <span class="input-prefix-label">R$</span>
+                                <input type="text" class="f-inp" id="visValor" placeholder="0,00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="f-grp"><label class="f-lbl">Observações</label><textarea class="f-inp" id="visObs"
+                            placeholder="Notas adicionais..."></textarea></div>
+                </form>
+            </div>
+            <div class="modal-f"><button class="btn btn-s" style="flex:1"
+                    onclick="closeModal('visita')">Cancelar</button><button class="btn btn-p" style="flex:2"
+                    id="btnSaveVis" onclick="saveVisita()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>Registrar</button></div>
+        </div>
+    </div>
+
+    <div class="modal-o" id="modal-cliente">
+        <div class="modal">
+            <div class="modal-h">
+                <h3 class="modal-t">Novo Cliente</h3><button class="modal-x" onclick="closeModal('cliente')"><svg
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-b">
+                <div id="cliManualBanner" style="display:none;padding:10px 14px;background:#fff3cd;border:1px solid #ffc107;border-radius:12px;margin-bottom:12px">
+                    <div style="font-size:.8rem;font-weight:600;color:#856404;margin-bottom:2px">CADASTRO OFFLINE - Sem sincronização imediata</div>
+                    <div style="font-size:.75rem;color:#856404">Salvo localmente. Sincronizará automaticamente ao conectar.</div>
+                </div>
+                <form id="frmCli">
+                    <div class="f-grp"><label class="f-lbl">Nome *</label><input type="text" class="f-inp" id="cliNome"
+                            required></div>
+                    <div class="f-row">
+                        <div class="f-grp"><label class="f-lbl">CPF/CNPJ *</label><input type="text" class="f-inp"
+                                id="cliDoc" required></div>
+                        <div class="f-grp"><label class="f-lbl">Produtor Rural</label><input type="number" class="f-inp"
+                                id="cliProdutorRural" placeholder="Número do produtor rural"></div>
+                        <div class="f-grp"><label class="f-lbl">Telefone *</label><input type="tel" class="f-inp"
+                                id="cliTel" required></div>
+                    </div>
+                    <div class="f-grp"><label class="f-lbl">E-mail</label><input type="email" class="f-inp"
+                            id="cliEmail"></div>
+                    <div class="f-grp"><label class="f-lbl">Origem *</label><select class="f-inp" id="cliOrigem"
+                            required>
+                            <option value="">Selecione</option>
+                            <option value="indicacao">Indicação</option>
+                            <option value="visita">Visita à loja</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="evento">Evento/Feira</option>
+                            <option value="redes-sociais">Redes sociais</option>
+                            <option value="outro">Outro</option>
+                            <option value="porteira">Porteira</option>
+                        </select></div>
+                    <div class="f-grp"><label class="f-lbl">Propriedade *</label><input type="text" class="f-inp"
+                            id="cliProp" required></div>
+                    <div class="f-grp"><label class="f-lbl">Endereço *</label><input type="text" class="f-inp"
+                            id="cliEnd" required></div>
+                    <div class="f-row">
+                        <div class="f-grp"><label class="f-lbl">Cidade *</label><input type="text" class="f-inp"
+                                id="cliCidade" required></div>
+                        <div class="f-grp"><label class="f-lbl">Área (ha)</label><input type="number" class="f-inp"
+                                id="cliArea"></div>
+                    </div>
+                    <div class="f-grp"><label class="f-lbl">Culturas (Histórico)</label><input type="text" class="f-inp"
+                            id="cliCult" placeholder="Soja, Milho..."></div>
+
+                    <div class="div-line"></div>
+                    <h4 class="f-sub">🌱 Plantios Ativos</h4>
+                    <div id="plantiosList" class="plantios-list">
+                        <!-- Plantios serão inseridos aqui -->
+                    </div>
+                    <div id="addPlantioForm" class="add-plantio-form" style="display:none">
+                        <div class="f-row">
+                            <div class="f-grp" style="flex:1">
+                                <select class="f-inp" id="newPlantioCultura">
+                                    <option value="">Cultura</option>
+                                    <option value="Soja">Soja</option>
+                                    <option value="Milho">Milho</option>
+                                    <option value="Silagem">Silagem</option>
+                                    <option value="Feijão">Feijão</option>
+                                    <option value="Algodão">Algodão</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                            <div class="f-grp" style="flex:1">
+                                <select class="f-inp" id="newPlantioTipo">
+                                    <option value="Safra">Safra</option>
+                                    <option value="Safrinha">Safrinha</option>
+                                    <option value="3ª Safra">3ª Safra</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="f-row">
+                            <div class="f-grp" style="flex:1">
+                                <input type="date" class="f-inp" id="newPlantioData" placeholder="Data Plantio">
+                            </div>
+                            <button type="button" class="btn btn-p btn-sm" onclick="confirmarPlantio()">Adicionar</button>
+                            <button type="button" class="btn btn-s btn-sm" onclick="cancelarPlantio()">X</button>
+                        </div>
+                    </div>
+                    <button type="button" id="btnAddPlantio" class="btn-add-plantio" onclick="mostrarFormPlantio()">+ Adicionar Plantio</button>
+
+                    <div class="div-line"></div>
+                    <h4 class="f-sub">📅 Agendar Retorno</h4>
+                    <div class="f-row">
+                        <div class="f-grp"><label class="f-lbl">Data Lembrete</label><input type="date" class="f-inp"
+                                id="cliLembreteData"></div>
+                        <div class="f-grp"><label class="f-lbl">Nota/Motivo</label><input type="text" class="f-inp"
+                                id="cliLembreteNota" placeholder="Ex: Ligar sobre adubo"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-f"><button class="btn btn-s" style="flex:1"
+                    onclick="closeModal('cliente')">Cancelar</button><button class="btn btn-p" style="flex:2"
+                    id="btnSaveCli" onclick="saveCliente()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>Cadastrar</button></div>
+        </div>
+    </div>
+
+    <div class="det-modal" id="detModal" onclick="if(event.target===this)closeDetalhes()">
+        <div class="det-box">
+            <div class="det-hdr">
+                <h3 id="detTitle">Detalhes</h3><button class="det-x" onclick="closeDetalhes()">✕</button>
+            </div>
+            <div class="det-body" id="detBody"></div>
+        </div>
+    </div>
+
+    <div class="modal-o" id="modal-contato">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-h">
+                <h3 class="modal-t">Registrar Contato</h3>
+                <button class="modal-x" onclick="closeModalContato()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-b">
+                <div id="contatoClienteInfo" style="background:#f0f7f0;padding:10px;border-radius:8px;margin-bottom:12px"></div>
+                <form id="frmContato">
+                    <div class="f-grp">
+                        <label class="f-lbl">Resultado do Contato *</label>
+                        <select class="f-inp" id="contatoResultado" required>
+                            <option value="">Selecione</option>
+                            <option value="sucesso">Contato realizado com sucesso</option>
+                            <option value="sem-resposta">Sem resposta / Não atendeu</option>
+                            <option value="reagendar">Pediu para reagendar</option>
+                            <option value="desistiu">Cliente desistiu</option>
+                        </select>
+                    </div>
+                    <div class="f-grp">
+                        <label class="f-lbl">Detalhes *</label>
+                        <textarea class="f-inp" id="contatoDetalhes" placeholder="Descreva o que foi conversado, próximos passos, etc." required></textarea>
+                    </div>
+                    <div class="f-grp">
+                        <label class="f-lbl">Agendar próximo contato?</label>
+                        <input type="date" class="f-inp" id="contatoProxData">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-f">
+                <button class="btn btn-s" style="flex:1" onclick="closeModalContato()">Cancelar</button>
+                <button class="btn btn-p" style="flex:2" onclick="saveContato()">Salvar Contato</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-o" id="modal-pendentes">
+        <div class="modal">
+            <div class="modal-h">
+                <h3 class="modal-t">Pendentes de Sincronização</h3>
+                <button class="modal-x" onclick="closePendingModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="modal-b" id="pendList" style="min-height:80px"></div>
+            <div class="modal-f" style="gap:8px">
+                <button class="btn btn-s" style="flex:1" onclick="closePendingModal()">Fechar</button>
+                <button class="btn btn-p" style="flex:2" id="btnSyncNow" onclick="syncNow()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>Sincronizar agora</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-o" id="modal-vendedor-detalhe">
+        <div class="modal modal-lg">
+            <div class="modal-h">
+                <h3 class="modal-t" id="vendedorDetalheTitulo">Detalhes do Vendedor</h3>
+                <button class="modal-x" onclick="closeModal('vendedor-detalhe')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-b">
+                <div class="rel-tabs">
+                    <button class="rel-tab act" data-rel-tab="resumo">Resumo</button>
+                    <button class="rel-tab" data-rel-tab="clientes">Clientes</button>
+                    <button class="rel-tab" data-rel-tab="visitas">Visitas</button>
+                    <button class="rel-tab" data-rel-tab="plantios">Plantios</button>
+                </div>
+                <div class="rel-tab-content">
+                    <div class="rel-tab-pane act" id="rel-tab-resumo">
+                        <div id="vendedorResumo"></div>
+                    </div>
+                    <div class="rel-tab-pane" id="rel-tab-clientes">
+                        <div id="vendedorClientes"></div>
+                    </div>
+                    <div class="rel-tab-pane" id="rel-tab-visitas">
+                        <div id="vendedorVisitas"></div>
+                    </div>
+                    <div class="rel-tab-pane" id="rel-tab-plantios">
+                        <div id="vendedorPlantios"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-f">
+                <button class="btn btn-s" onclick="closeModal('vendedor-detalhe')">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="foto-modal" id="fotoModal" onclick="closeFoto()">
+        <button class="foto-modal-x" onclick="closeFoto()">✕</button>
+        <img src="" id="fotoModalImg" alt="Foto da visita">
+    </div>
+
+    <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+        </svg><span id="toastMsg"></span></div>
+  <script src="./scripts/app.js"></script>
+</body>
+</html>

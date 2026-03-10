@@ -1,0 +1,15 @@
+{
+  "appId": "br.com.controlagro.app",
+  "appName": "ControlAGRO",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": false,
+      "style": "DARK"
+    }
+  }
+}

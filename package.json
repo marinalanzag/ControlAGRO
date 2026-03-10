@@ -1,0 +1,37 @@
+{
+  "name": "controlagro-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Base do app mobile offline-first do ControlAGRO.",
+  "scripts": {
+    "config:default": "node scripts/generate-capacitor-config.mjs default",
+    "config:dev": "node scripts/generate-capacitor-config.mjs dev",
+    "config:homolog": "node scripts/generate-capacitor-config.mjs homolog",
+    "config:prod": "node scripts/generate-capacitor-config.mjs prod",
+    "native:default": "node scripts/apply-native-branding.mjs default",
+    "native:dev": "node scripts/apply-native-branding.mjs dev",
+    "native:homolog": "node scripts/apply-native-branding.mjs homolog",
+    "native:prod": "node scripts/apply-native-branding.mjs prod",
+    "build": "node scripts/build-web.mjs",
+    "build:dev": "node scripts/build-web.mjs dev",
+    "build:homolog": "node scripts/build-web.mjs homolog",
+    "build:prod": "node scripts/build-web.mjs prod",
+    "prepare:web": "node scripts/build-web.mjs",
+    "clean": "node scripts/clean.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "cap:sync": "npm run config:default && npm run build && npx cap sync && npm run native:default",
+    "cap:copy": "npm run build && npx cap copy",
+    "cap:sync:dev": "npm run config:dev && npm run build:dev && npx cap sync && npm run native:dev",
+    "cap:sync:homolog": "npm run config:homolog && npm run build:homolog && npx cap sync && npm run native:homolog",
+    "cap:sync:prod": "npm run config:prod && npm run build:prod && npx cap sync && npm run native:prod"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
+    "@capacitor/ios": "^8.2.0"
+  }
+}
